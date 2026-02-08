@@ -40,10 +40,15 @@ interface IngestExtensionParams {
   title?: string
 }
 
+function sanitizeForDb(str: string): string {
+  // biome-ignore lint/suspicious/noControlCharactersInRegex: need to strip NULL bytes for PostgreSQL UTF-8 compatibility
+  return str.replace(/\x00/g, "").slice(0, 1000)
+}
+
 async function updateBookmarkStatus(bookmarkId: string, status: IngestStatus, error?: string) {
   await db
     .update(bookmark)
-    .set({ ingestStatus: status, ingestError: error ?? null })
+    .set({ ingestStatus: status, ingestError: error ? sanitizeForDb(error) : null })
     .where(eq(bookmark.id, bookmarkId))
 }
 

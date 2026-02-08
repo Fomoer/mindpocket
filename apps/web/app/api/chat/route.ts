@@ -8,8 +8,8 @@ import {
   tool,
   type UIMessage,
 } from "ai"
-import { after } from "next/server"
 import { headers } from "next/headers"
+import { after } from "next/server"
 import { createResumableStreamContext } from "resumable-stream"
 import { z } from "zod"
 import {
@@ -94,7 +94,8 @@ export async function POST(req: Request) {
                 parameters: z.object({
                   question: z.string().describe("用于搜索知识库的查询语句"),
                 }),
-                execute: async ({ question }) => findRelevantContent(question),
+                execute: async (input: { question: string }) =>
+                  findRelevantContent(userId, input.question),
               }),
             }
           : undefined,

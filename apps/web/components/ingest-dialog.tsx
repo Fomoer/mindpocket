@@ -60,6 +60,9 @@ function formatFileSize(bytes: number) {
 }
 
 export function IngestDialog({ folders = [], onSuccess, trigger }: IngestDialogProps) {
+  const dialogContentId = "ingest-dialog-content"
+  const dialogTitleId = "ingest-dialog-title"
+  const dialogDescriptionId = "ingest-dialog-description"
   const [open, setOpen] = useState(false)
   const [state, setState] = useState<IngestState>("idle")
   const [error, setError] = useState<string | null>(null)
@@ -177,10 +180,15 @@ export function IngestDialog({ folders = [], onSuccess, trigger }: IngestDialogP
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[480px]">
+      <DialogContent
+        aria-describedby={dialogDescriptionId}
+        aria-labelledby={dialogTitleId}
+        className="sm:max-w-[480px]"
+        id={dialogContentId}
+      >
         <DialogHeader>
-          <DialogTitle>导入内容</DialogTitle>
-          <DialogDescription>
+          <DialogTitle id={dialogTitleId}>导入内容</DialogTitle>
+          <DialogDescription id={dialogDescriptionId}>
             粘贴链接或上传文件，自动转换为 Markdown 并存入知识库
           </DialogDescription>
         </DialogHeader>

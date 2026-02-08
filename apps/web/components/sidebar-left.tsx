@@ -3,11 +3,11 @@
 import {
   Bookmark,
   Brain,
-  ChevronRight,
   Github,
   LayoutDashboard,
   Loader2,
   MessageSquare,
+  MoreHorizontal,
   Plus,
   Search,
   Sparkles,
@@ -21,7 +21,14 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 
 import { NavUser } from "@/components/nav-user"
+import { useSearchDialog } from "@/components/search/search-dialog-provider"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import {
   Sidebar,
   SidebarContent,
@@ -71,6 +78,7 @@ export function SidebarLeft({ ...props }: React.ComponentProps<typeof Sidebar>) 
   const pathname = usePathname()
   const router = useRouter()
   const t = useT()
+  const { openSearchDialog } = useSearchDialog()
   const [chats, setChats] = useState<ChatItem[]>([])
   const [isLoadingChats, setIsLoadingChats] = useState(true)
   const [folders, setFolders] = useState<FolderItem[]>([])
@@ -189,6 +197,57 @@ export function SidebarLeft({ ...props }: React.ComponentProps<typeof Sidebar>) 
     [pathname, router, t]
   )
 
+  const handleDeleteFolder = useCallback(
+    async (folderId: string) => {
+      try {
+        const res = await fetch("/api/folders", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: folderId }),
+        })
+        if (res.ok) {
+          setFolders((prev) => prev.filter((f) => f.id !== folderId))
+          if (pathname === `/folders/${folderId}`) {
+            router.push("/")
+          }
+          toast.success(t.sidebar.folderDeleted)
+        }
+      } catch {
+        toast.error(t.sidebar.folderDeleteFailed)
+      }
+    },
+    [pathname, router, t]
+  )
+
+  const handleDeleteBookmark = useCallback(
+    async (e: React.MouseEvent, bookmarkId: string) => {
+      e.preventDefault()
+      e.stopPropagation()
+      try {
+        const res = await fetch(`/api/bookmarks/${bookmarkId}`, {
+          method: "DELETE",
+        })
+        if (res.ok) {
+          setFolders((prev) =>
+            prev.map((folder) => ({
+              ...folder,
+              items: folder.items.filter((item) => item.id !== bookmarkId),
+            }))
+          )
+          if (pathname === `/bookmark/${bookmarkId}`) {
+            router.push("/")
+          }
+          toast.success(t.sidebar.bookmarkDeleted)
+        } else {
+          toast.error(t.sidebar.bookmarkDeleteFailed)
+        }
+      } catch {
+        toast.error(t.sidebar.bookmarkDeleteFailed)
+      }
+    },
+    [pathname, router, t]
+  )
+
   return (
     <Sidebar className="border-r-0" {...props}>
       <SidebarHeader>
@@ -221,11 +280,9 @@ export function SidebarLeft({ ...props }: React.ComponentProps<typeof Sidebar>) 
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={pathname === "/search"}>
-              <Link href="/search">
-                <Search />
-                <span>{t.sidebar.search}</span>
-              </Link>
+            <SidebarMenuButton onClick={openSearchDialog}>
+              <Search />
+              <span>{t.sidebar.search}</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
@@ -276,16 +333,13 @@ export function SidebarLeft({ ...props }: React.ComponentProps<typeof Sidebar>) 
               {!isLoadingChats &&
                 chats.length > 0 &&
                 chats.map((chat) => (
-                  <SidebarMenuItem key={chat.id}>
-                    <SidebarMenuButton asChild isActive={pathname === `/chat/${chat.id}`}>
-                      <Link href={`/chat/${chat.id}`}>
-                        <span className="truncate">{chat.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                    <SidebarMenuAction onClick={(e) => handleDeleteChat(e, chat.id)}>
-                      <Trash2 className="size-3" />
-                    </SidebarMenuAction>
-                  </SidebarMenuItem>
+                  <ChatMenuItem
+                    chat={chat}
+                    isActive={pathname === `/chat/${chat.id}`}
+                    key={chat.id}
+                    onDelete={(e) => handleDeleteChat(e, chat.id)}
+                    t={t}
+                  />
                 ))}
             </SidebarMenu>
           </SidebarGroupContent>
@@ -313,34 +367,14 @@ export function SidebarLeft({ ...props }: React.ComponentProps<typeof Sidebar>) 
               )}
               {!isLoadingFolders &&
                 folders.map((f) => (
-                  <Collapsible className="group/collapsible" key={f.id}>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton asChild isActive={pathname === `/folders/${f.id}`}>
-                        <Link href={`/folders/${f.id}`}>
-                          <span>{f.emoji}</span>
-                          <span>{f.name}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                      <CollapsibleTrigger asChild>
-                        <SidebarMenuAction>
-                          <ChevronRight className="transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                        </SidebarMenuAction>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent>
-                        <SidebarMenuSub>
-                          {f.items.map((item) => (
-                            <SidebarMenuSubItem key={item.id}>
-                              <SidebarMenuSubButton asChild>
-                                <Link href={`/bookmark/${item.id}`}>
-                                  <span>{item.title}</span>
-                                </Link>
-                              </SidebarMenuSubButton>
-                            </SidebarMenuSubItem>
-                          ))}
-                        </SidebarMenuSub>
-                      </CollapsibleContent>
-                    </SidebarMenuItem>
-                  </Collapsible>
+                  <FolderMenuItem
+                    folder={f}
+                    isActive={pathname === `/folders/${f.id}`}
+                    key={f.id}
+                    onDeleteBookmark={handleDeleteBookmark}
+                    onDelete={() => handleDeleteFolder(f.id)}
+                    t={t}
+                  />
                 ))}
 
               <SidebarMenuItem>
@@ -406,5 +440,150 @@ export function SidebarLeft({ ...props }: React.ComponentProps<typeof Sidebar>) 
 
       <SidebarRail />
     </Sidebar>
+  )
+}
+
+function ChatMenuItem({
+  chat,
+  isActive,
+  onDelete,
+  t,
+}: {
+  chat: ChatItem
+  isActive: boolean
+  onDelete: (e: React.MouseEvent) => void
+  t: ReturnType<typeof useT>
+}) {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <SidebarMenuItem
+      onContextMenu={(e) => {
+        e.preventDefault()
+        setOpen(true)
+      }}
+    >
+      <SidebarMenuButton asChild isActive={isActive}>
+        <Link href={`/chat/${chat.id}`}>
+          <span className="truncate">{chat.title}</span>
+        </Link>
+      </SidebarMenuButton>
+      <DropdownMenu onOpenChange={setOpen} open={open}>
+        <DropdownMenuTrigger asChild>
+          <SidebarMenuAction className="opacity-0 group-focus-within/menu-item:opacity-100 group-hover/menu-item:opacity-100 data-[state=open]:opacity-100">
+            <MoreHorizontal className="size-3" />
+          </SidebarMenuAction>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" side="right">
+          <DropdownMenuItem onClick={onDelete} variant="destructive">
+            <Trash2 />
+            <span>{t.sidebar.deleteChat}</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </SidebarMenuItem>
+  )
+}
+
+function FolderMenuItem({
+  folder,
+  isActive,
+  onDelete,
+  onDeleteBookmark,
+  t,
+}: {
+  folder: FolderItem
+  isActive: boolean
+  onDelete: () => void
+  onDeleteBookmark: (e: React.MouseEvent, bookmarkId: string) => void
+  t: ReturnType<typeof useT>
+}) {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <Collapsible className="group/collapsible">
+      <SidebarMenuItem>
+        <CollapsibleTrigger asChild>
+          <SidebarMenuButton
+            asChild
+            isActive={isActive}
+            onContextMenu={(e) => {
+              e.preventDefault()
+              setOpen(true)
+            }}
+          >
+            <Link href={`/folders/${folder.id}`}>
+              <span>{folder.emoji}</span>
+              <span>{folder.name}</span>
+            </Link>
+          </SidebarMenuButton>
+        </CollapsibleTrigger>
+        <DropdownMenu onOpenChange={setOpen} open={open}>
+          <DropdownMenuTrigger asChild>
+            <SidebarMenuAction className="opacity-0 group-focus-within/menu-item:opacity-100 group-hover/menu-item:opacity-100 data-[state=open]:opacity-100">
+              <MoreHorizontal className="size-3" />
+            </SidebarMenuAction>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" side="right">
+            <DropdownMenuItem onClick={onDelete} variant="destructive">
+              <Trash2 />
+              <span>{t.sidebar.deleteFolder}</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <CollapsibleContent>
+          <SidebarMenuSub>
+            {folder.items.map((item) => (
+              <BookmarkMenuItem
+                bookmark={item}
+                key={item.id}
+                onDelete={(e) => onDeleteBookmark(e, item.id)}
+                t={t}
+              />
+            ))}
+          </SidebarMenuSub>
+        </CollapsibleContent>
+      </SidebarMenuItem>
+    </Collapsible>
+  )
+}
+
+function BookmarkMenuItem({
+  bookmark,
+  onDelete,
+  t,
+}: {
+  bookmark: { id: string; title: string }
+  onDelete: (e: React.MouseEvent) => void
+  t: ReturnType<typeof useT>
+}) {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <SidebarMenuSubItem
+      onContextMenu={(e) => {
+        e.preventDefault()
+        setOpen(true)
+      }}
+    >
+      <SidebarMenuSubButton asChild>
+        <Link href={`/bookmark/${bookmark.id}`}>
+          <span>{bookmark.title}</span>
+        </Link>
+      </SidebarMenuSubButton>
+      <DropdownMenu onOpenChange={setOpen} open={open}>
+        <DropdownMenuTrigger asChild>
+          <SidebarMenuAction className="opacity-0 group-focus-within/menu-sub-item:opacity-100 group-hover/menu-sub-item:opacity-100 data-[state=open]:opacity-100">
+            <MoreHorizontal className="size-3" />
+          </SidebarMenuAction>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" side="right">
+          <DropdownMenuItem onClick={onDelete} variant="destructive">
+            <Trash2 />
+            <span>{t.sidebar.deleteBookmark}</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </SidebarMenuSubItem>
   )
 }

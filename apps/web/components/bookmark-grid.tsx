@@ -1,21 +1,10 @@
 "use client"
 
-import {
-  FileText,
-  Grid3X3,
-  Image,
-  LayoutList,
-  Link2,
-  Loader2,
-  Package,
-  Search,
-  Video,
-} from "lucide-react"
+import { FileText, Grid3X3, Image, LayoutList, Link2, Loader2, Package, Video } from "lucide-react"
 import Link from "next/link"
 import { useCallback, useEffect, useState } from "react"
 import { BookmarkCard, type BookmarkItem } from "@/components/bookmark-card"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
 
@@ -37,8 +26,6 @@ export function BookmarkGrid({ refreshKey, folderId }: { refreshKey?: number; fo
   const [isLoadingMore, setIsLoadingMore] = useState(false)
 
   const [activeType, setActiveType] = useState("all")
-  const [search, setSearch] = useState("")
-  const [searchInput, setSearchInput] = useState("")
   const [viewMode, setViewMode] = useState<ViewMode>("grid")
 
   const fetchBookmarks = useCallback(
@@ -49,7 +36,6 @@ export function BookmarkGrid({ refreshKey, folderId }: { refreshKey?: number; fo
       try {
         const params = new URLSearchParams()
         if (activeType !== "all") params.set("type", activeType)
-        if (search) params.set("search", search)
         if (folderId) params.set("folderId", folderId)
         params.set("limit", "20")
         params.set("offset", String(offset))
@@ -68,7 +54,7 @@ export function BookmarkGrid({ refreshKey, folderId }: { refreshKey?: number; fo
         setIsLoadingMore(false)
       }
     },
-    [activeType, search, folderId]
+    [activeType, folderId]
   )
 
   useEffect(() => {
@@ -81,10 +67,6 @@ export function BookmarkGrid({ refreshKey, folderId }: { refreshKey?: number; fo
     }
   }, [refreshKey, fetchBookmarks])
 
-  const handleSearch = useCallback(() => {
-    setSearch(searchInput)
-  }, [searchInput])
-
   const handleLoadMore = useCallback(() => {
     fetchBookmarks(bookmarks.length, true)
   }, [fetchBookmarks, bookmarks.length])
@@ -94,10 +76,7 @@ export function BookmarkGrid({ refreshKey, folderId }: { refreshKey?: number; fo
       {/* 筛选栏 */}
       <FilterBar
         activeType={activeType}
-        onSearch={handleSearch}
-        onSearchInputChange={setSearchInput}
         onTypeChange={setActiveType}
-        searchInput={searchInput}
         setViewMode={setViewMode}
         total={total}
         viewMode={viewMode}
@@ -107,7 +86,7 @@ export function BookmarkGrid({ refreshKey, folderId }: { refreshKey?: number; fo
       {isLoading ? (
         <LoadingSkeleton viewMode={viewMode} />
       ) : bookmarks.length === 0 ? (
-        <EmptyState search={search} />
+        <EmptyState />
       ) : (
         <>
           <BookmarkList bookmarks={bookmarks} viewMode={viewMode} />
@@ -128,18 +107,12 @@ export function BookmarkGrid({ refreshKey, folderId }: { refreshKey?: number; fo
 function FilterBar({
   activeType,
   onTypeChange,
-  searchInput,
-  onSearchInputChange,
-  onSearch,
   viewMode,
   setViewMode,
   total,
 }: {
   activeType: string
   onTypeChange: (type: string) => void
-  searchInput: string
-  onSearchInputChange: (v: string) => void
-  onSearch: () => void
   viewMode: ViewMode
   setViewMode: (mode: ViewMode) => void
   total: number
@@ -183,17 +156,6 @@ function FilterBar({
             </Button>
           </div>
         </div>
-      </div>
-
-      <div className="relative">
-        <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          className="pl-9"
-          onChange={(e) => onSearchInputChange(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && onSearch()}
-          placeholder="搜索收藏..."
-          value={searchInput}
-        />
       </div>
     </div>
   )
@@ -284,17 +246,13 @@ function LoadingSkeleton({ viewMode }: { viewMode: ViewMode }) {
   )
 }
 
-function EmptyState({ search }: { search: string }) {
+function EmptyState() {
   return (
     <div className="flex flex-col items-center justify-center gap-3 py-20">
       <Package className="size-12 text-muted-foreground/40" />
       <div className="text-center">
-        <p className="font-medium text-muted-foreground">
-          {search ? "没有找到匹配的收藏" : "还没有任何收藏"}
-        </p>
-        <p className="mt-1 text-muted-foreground/60 text-sm">
-          {search ? "试试其他关键词" : "开始收藏你喜欢的内容吧"}
-        </p>
+        <p className="font-medium text-muted-foreground">还没有任何收藏</p>
+        <p className="mt-1 text-muted-foreground/60 text-sm">开始收藏你喜欢的内容吧</p>
       </div>
     </div>
   )

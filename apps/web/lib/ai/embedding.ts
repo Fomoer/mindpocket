@@ -1,8 +1,9 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible"
 import { embed, embedMany } from "ai"
-import { cosineDistance, desc, gt, sql } from "drizzle-orm"
+import { and, cosineDistance, desc, eq, gt, sql } from "drizzle-orm"
 import { nanoid } from "nanoid"
 import { db } from "@/db/client"
+import { bookmark } from "@/db/schema/bookmark"
 import { embedding } from "@/db/schema/embedding"
 
 const aliyun = createOpenAICompatible({
@@ -57,7 +58,7 @@ export async function generateEmbeddings(
   }))
 }
 
-export async function findRelevantContent(userQuery: string) {
+export async function findRelevantContent(userId: string, userQuery: string) {
   const userQueryEmbedded = await generateEmbedding(userQuery)
 
   const similarity = sql<number>`1 - (${cosineDistance(embedding.embedding, userQueryEmbedded)})`
@@ -69,7 +70,8 @@ export async function findRelevantContent(userQuery: string) {
       similarity,
     })
     .from(embedding)
-    .where(gt(similarity, 0.3))
+    .innerJoin(bookmark, eq(embedding.bookmarkId, bookmark.id))
+    .where(and(eq(bookmark.userId, userId), eq(bookmark.isArchived, false), gt(similarity, 0.3)))
     .orderBy((t) => desc(t.similarity))
     .limit(6)
 

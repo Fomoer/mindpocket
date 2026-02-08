@@ -1,4 +1,4 @@
-import { eq, sql } from "drizzle-orm"
+import { and, eq, sql } from "drizzle-orm"
 import { nanoid } from "nanoid"
 import { headers } from "next/headers"
 import { db } from "@/db/client"
@@ -76,4 +76,21 @@ export async function POST(request: Request) {
     })
 
   return Response.json({ folder: { ...newFolder[0], items: [] } }, { status: 201 })
+}
+
+export async function DELETE(request: Request) {
+  const session = await auth.api.getSession({ headers: await headers() })
+  if (!session?.user) {
+    return new Response("Unauthorized", { status: 401 })
+  }
+
+  const body = await request.json()
+  const id = typeof body.id === "string" ? body.id : ""
+  if (!id) {
+    return Response.json({ error: "缺少文件夹 ID" }, { status: 400 })
+  }
+
+  await db.delete(folder).where(and(eq(folder.id, id), eq(folder.userId, session.user.id)))
+
+  return Response.json({ success: true })
 }

@@ -30,22 +30,31 @@ function CommandDialog({
   description = "Search for a command to run...",
   children,
   className,
+  contentId,
+  titleId,
+  descriptionId,
   showCloseButton = true,
   ...props
 }: React.ComponentProps<typeof Dialog> & {
   title?: string
   description?: string
   className?: string
+  contentId?: string
+  titleId?: string
+  descriptionId?: string
   showCloseButton?: boolean
 }) {
   return (
     <Dialog {...props}>
       <DialogHeader className="sr-only">
-        <DialogTitle>{title}</DialogTitle>
-        <DialogDescription>{description}</DialogDescription>
+        <DialogTitle id={titleId}>{title}</DialogTitle>
+        <DialogDescription id={descriptionId}>{description}</DialogDescription>
       </DialogHeader>
       <DialogContent
+        aria-describedby={descriptionId}
+        aria-labelledby={titleId}
         className={cn("overflow-hidden p-0", className)}
+        id={contentId}
         showCloseButton={showCloseButton}
       >
         <Command className="**:data-[slot=command-input-wrapper]:h-12 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-2 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5">
