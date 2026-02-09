@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "native",
-    "slug": "native",
+    "name": "MindPocket",
+    "slug": "mindpocket",
     "version": "1.0.0",
     "scheme": "mindpocket",
     "orientation": "portrait",
@@ -37,6 +37,7 @@
       [
         "expo-share-intent",
         {
+          "iosShareExtensionName": "MindPocket Share",
           "iosActivationRules": {
             "NSExtensionActivationSupportsWebURLWithMaxCount": 1,
             "NSExtensionActivationSupportsText": true
