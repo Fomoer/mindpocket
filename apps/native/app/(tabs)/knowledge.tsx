@@ -13,6 +13,7 @@ import {
   View,
 } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
+import { SearchModal } from "@/components/knowledge/search-modal"
 import { ApiError } from "@/lib/api-client"
 import { type BookmarkItem, deleteBookmark, fetchBookmarks } from "@/lib/bookmark-api"
 
@@ -42,6 +43,7 @@ export default function KnowledgeScreen() {
   const [activeType, setActiveType] = useState("all")
   const [activePlatform, setActivePlatform] = useState("all")
   const [error, setError] = useState<string>()
+  const [searchVisible, setSearchVisible] = useState(false)
 
   const loadBookmarks = useCallback(
     async (offset = 0, append = false) => {
@@ -108,6 +110,9 @@ export default function KnowledgeScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>收藏</Text>
+        <Pressable hitSlop={8} onPress={() => setSearchVisible(true)}>
+          <Ionicons color="#262626" name="search-outline" size={24} />
+        </Pressable>
       </View>
 
       <FilterChips
@@ -128,6 +133,15 @@ export default function KnowledgeScreen() {
         isRefreshing={isRefreshing}
         loadBookmarks={loadBookmarks}
         router={router}
+      />
+
+      <SearchModal
+        onClose={() => setSearchVisible(false)}
+        onSelectResult={(id) => {
+          setSearchVisible(false)
+          router.push({ pathname: "/bookmark/[id]", params: { id } })
+        }}
+        visible={searchVisible}
       />
     </View>
   )
@@ -331,8 +345,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     height: 48,
-    justifyContent: "center",
     paddingHorizontal: 16,
   },
   headerTitle: {
