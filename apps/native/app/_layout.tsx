@@ -6,7 +6,7 @@ import { Alert } from "react-native"
 import { GestureHandlerRootView } from "react-native-gesture-handler"
 import { SafeAreaProvider } from "react-native-safe-area-context"
 import { saveBookmark } from "@/lib/api"
-import { useAuth, AuthProvider } from "@/lib/auth-context"
+import { AuthProvider, useAuth } from "@/lib/auth-context"
 
 function ShareIntentHandler() {
   const router = useRouter()
@@ -64,6 +64,14 @@ export default function RootLayout() {
                 options={{
                   headerShown: true,
                   title: "对话",
+                  presentation: "card",
+                }}
+              />
+              <Stack.Screen
+                name="bookmark/[id]"
+                options={{
+                  headerShown: true,
+                  title: "收藏详情",
                   presentation: "card",
                 }}
               />

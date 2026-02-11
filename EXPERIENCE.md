@@ -32,6 +32,13 @@ claude 4.6 opus 能力太炸裂了，基本上都是一遍过
 在 claude.md 里要求规范，每次完成一个任务，就要做 format lint check
 极大提升 vibe coding的质量
 
+如果你要做多端应用
+
+先做好 web 端， 然后让 ai 参考 做 mobile 和 extension 就很简单了
+比如 `/plan 参考我 web 中的xx，在 native 中实现` 
+web 端也方便调试
+
+
 
 # MCP & SKILLS
 
@@ -49,3 +56,5 @@ vercel skills 安装管理
 find skills
 常用的沉淀成 skills
 其实就是些提示词
+
+

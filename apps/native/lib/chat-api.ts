@@ -1,18 +1,8 @@
 import type { UIMessage } from "ai"
-import { getItem } from "expo-secure-store"
-import { getServerUrl } from "./server-config"
+import { ApiError, requestJson, requestVoid } from "./api-client"
 
-const IS_WEB = typeof document !== "undefined"
-
-export class ChatApiError extends Error {
-  status: number
-
-  constructor(status: number, message: string) {
-    super(message)
-    this.status = status
-    this.name = "ChatApiError"
-  }
-}
+export type ChatApiError = ApiError
+export const ChatApiError = ApiError
 
 export interface HistoryChatItem {
   id: string
@@ -32,61 +22,6 @@ export interface ChatDetail {
     createdAt: string
   }
   messages: UIMessage[]
-}
-
-function getCookie(): string {
-  const raw = getItem("mindpocket_cookie") || "{}"
-  let parsed: Record<string, { value: string; expires: string | null }> = {}
-  try {
-    parsed = JSON.parse(raw)
-  } catch {
-    return ""
-  }
-  return Object.entries(parsed)
-    .filter(([, v]) => !v.expires || new Date(v.expires) > new Date())
-    .map(([key, v]) => `${key}=${v.value}`)
-    .join("; ")
-}
-
-function createHeaders(extra?: Record<string, string>): Record<string, string> {
-  const headers: Record<string, string> = { ...(extra || {}) }
-  if (IS_WEB) {
-    return headers
-  }
-
-  const cookie = getCookie()
-  if (cookie) {
-    headers.cookie = cookie
-  }
-  return headers
-}
-
-async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${getServerUrl()}${path}`, {
-    ...init,
-    credentials: "include",
-    headers: createHeaders((init?.headers || undefined) as Record<string, string> | undefined),
-  })
-
-  if (!response.ok) {
-    const message = (await response.text()) || "Request failed"
-    throw new ChatApiError(response.status, message)
-  }
-
-  return (await response.json()) as T
-}
-
-async function requestVoid(path: string, init?: RequestInit): Promise<void> {
-  const response = await fetch(`${getServerUrl()}${path}`, {
-    ...init,
-    credentials: "include",
-    headers: createHeaders((init?.headers || undefined) as Record<string, string> | undefined),
-  })
-
-  if (!response.ok) {
-    const message = (await response.text()) || "Request failed"
-    throw new ChatApiError(response.status, message)
-  }
 }
 
 function formatDateLabel(value: string): string {
