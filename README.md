@@ -6,6 +6,10 @@
 
 完全开源、免费、多端、一键部署、AI Agent 集成的个人收藏夹系统
 
+<p align="center">
+  <img src="./docs/all.png" alt="MindPocket Preview" />
+</p>
+
 MindPocket 将你的收藏内容进行分类存储，并通过 AI Agent 进行 RAG 内容总结和标签生成，方便你快速找到和管理收藏内容。
 
 ## ✨ 特性
@@ -144,10 +148,13 @@ pnpm ios          # iOS 运行
 
 ## 🚧 项目状态 & ROADMAP
 
-- [ ] 添加更多设置配置选项
+- [ ] 添加更多设置配置选项在 UI 界面，更加友好用户体验
 - [ ] 支持更多收藏解析平台
 - [ ] 优化 AI Agent 交互体验
 - [ ] 优化 RAG
+- ...
+
+[todolist](./docs/todo.md) 查看详细 ROADMAP
 
 为了方便部署和保持免费，尽量减少外部服务依赖
 欢迎提 Issue 讨论功能建议和实现方案
