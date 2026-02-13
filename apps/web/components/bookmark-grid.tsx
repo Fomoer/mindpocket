@@ -1,12 +1,33 @@
 "use client"
 
-import { FileText, Grid3X3, Image, LayoutList, Link2, Loader2, Package, Video } from "lucide-react"
+import {
+  ExternalLink,
+  FileText,
+  FolderInput,
+  Grid3X3,
+  Heart,
+  Image,
+  LayoutList,
+  Link2,
+  Loader2,
+  MoreHorizontal,
+  Package,
+  Video,
+} from "lucide-react"
 import Link from "next/link"
 import { useCallback, useEffect, useState } from "react"
 import { BookmarkCard, type BookmarkItem } from "@/components/bookmark-card"
 import { hasPlatformIcon, PLATFORM_CONFIG, PlatformIcon } from "@/components/icons/platform-icons"
+import { MoveToFolderDialog } from "@/components/move-to-folder-dialog"
 import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useT } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
 
 const typeFilters = [
@@ -242,6 +263,7 @@ function BookmarkList({ bookmarks, viewMode }: { bookmarks: BookmarkItem[]; view
 }
 
 function BookmarkListItem({ item }: { item: BookmarkItem }) {
+  const t = useT()
   const typeIcons: Record<string, typeof Link2> = {
     link: Link2,
     article: FileText,
@@ -249,6 +271,7 @@ function BookmarkListItem({ item }: { item: BookmarkItem }) {
     image: Image,
   }
   const TypeIcon = typeIcons[item.type] || Link2
+  const [moveDialogOpen, setMoveDialogOpen] = useState(false)
 
   let domain: string | null = null
   if (item.url) {
@@ -260,31 +283,70 @@ function BookmarkListItem({ item }: { item: BookmarkItem }) {
   }
 
   return (
-    <Link
-      className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/50"
-      href={`/bookmark/${item.id}`}
-    >
-      <TypeIcon className="size-4 shrink-0 text-muted-foreground" />
-      <span className="min-w-0 flex-1 truncate text-sm">{item.title}</span>
-      {item.folderName && (
-        <span className="flex shrink-0 items-center gap-1 text-muted-foreground text-xs">
-          <span>{item.folderEmoji}</span>
-          <span>{item.folderName}</span>
-        </span>
-      )}
-      {hasPlatformIcon(item.platform) ? (
-        <span className="hidden shrink-0 sm:inline">
-          <PlatformIcon platform={item.platform!} />
-        </span>
-      ) : (
-        domain && (
-          <span className="hidden shrink-0 text-muted-foreground text-xs sm:inline">{domain}</span>
-        )
-      )}
-      <span className="shrink-0 text-muted-foreground text-xs">
-        {new Date(item.createdAt).toLocaleDateString("zh-CN")}
-      </span>
-    </Link>
+    <>
+      <div className="group flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/50">
+        <Link className="flex min-w-0 flex-1 items-center gap-3" href={`/bookmark/${item.id}`}>
+          <TypeIcon className="size-4 shrink-0 text-muted-foreground" />
+          <span className="min-w-0 flex-1 truncate text-sm">{item.title}</span>
+          {item.folderName && (
+            <span className="flex shrink-0 items-center gap-1 text-muted-foreground text-xs">
+              <span>{item.folderEmoji}</span>
+              <span>{item.folderName}</span>
+            </span>
+          )}
+          {hasPlatformIcon(item.platform) ? (
+            <span className="hidden shrink-0 sm:inline">
+              <PlatformIcon platform={item.platform!} />
+            </span>
+          ) : (
+            domain && (
+              <span className="hidden shrink-0 text-muted-foreground text-xs sm:inline">
+                {domain}
+              </span>
+            )
+          )}
+          <span className="shrink-0 text-muted-foreground text-xs">
+            {new Date(item.createdAt).toLocaleDateString("zh-CN")}
+          </span>
+        </Link>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              className="size-7 shrink-0 opacity-0 group-hover:opacity-100"
+              size="icon"
+              variant="ghost"
+            >
+              <MoreHorizontal className="size-3.5" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem asChild>
+              <a href={item.url || "#"} rel="noopener noreferrer" target="_blank">
+                <ExternalLink className="mr-2 size-3.5" />
+                {t.bookmark.openInNewTab}
+              </a>
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <Heart className="mr-2 size-3.5" />
+              {item.isFavorite ? t.bookmark.removeFavorite : t.bookmark.addFavorite}
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => setMoveDialogOpen(true)}>
+              <FolderInput className="mr-2 size-3.5" />
+              {t.bookmark.moveToFolder}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+      <MoveToFolderDialog
+        bookmarkId={item.id}
+        currentFolderId={item.folderId}
+        onMoved={() => {
+          // no-op: list view doesn't track folder state locally
+        }}
+        onOpenChange={setMoveDialogOpen}
+        open={moveDialogOpen}
+      />
+    </>
   )
 }
 

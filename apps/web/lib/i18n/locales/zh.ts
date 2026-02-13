@@ -133,6 +133,19 @@ export const zh = {
     titleLabel: "标题（可选）",
     titlePlaceholder: "自动提取",
   },
+  bookmark: {
+    moveToFolder: "移动到文件夹",
+    removeFromFolder: "移出文件夹",
+    moveSuccess: "移动成功",
+    moveFailed: "移动失败",
+    newFolder: "新建文件夹",
+    newFolderPlaceholder: "文件夹名称",
+    currentFolder: "当前",
+    noFolders: "暂无文件夹",
+    openInNewTab: "在新标签页打开",
+    addFavorite: "添加收藏",
+    removeFavorite: "取消收藏",
+  },
 } as const
 
 type DeepStringRecord<T> = {

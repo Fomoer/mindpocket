@@ -36,7 +36,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   }
 
   const body = await request.json()
-  const { title, content, description } = body
+  const { title, content, description, folderId } = body
 
   const updates: Record<string, unknown> = {}
   if (title !== undefined) {
@@ -47,6 +47,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   }
   if (description !== undefined) {
     updates.description = description
+  }
+  if (folderId !== undefined) {
+    updates.folderId = folderId
   }
 
   if (Object.keys(updates).length === 0) {

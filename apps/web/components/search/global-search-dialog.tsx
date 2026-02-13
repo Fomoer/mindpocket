@@ -121,13 +121,10 @@ export function GlobalSearchDialog() {
   return (
     <CommandDialog
       className="max-w-[calc(100vw-24px)] overflow-hidden rounded-2xl border-border/60 bg-background/95 p-0 shadow-2xl backdrop-blur-xl sm:max-w-[760px]"
-      contentId="global-search-dialog-content"
       description={t.searchDialog.description}
-      descriptionId="global-search-dialog-description"
       onOpenChange={setOpen}
       open={open}
       title={t.searchDialog.title}
-      titleId="global-search-dialog-title"
     >
       <Command className="bg-transparent" shouldFilter={false}>
         <div className="flex items-center gap-2 border-b border-border/60 pr-10 **:data-[slot=command-input-wrapper]:flex-1 **:data-[slot=command-input-wrapper]:border-none">

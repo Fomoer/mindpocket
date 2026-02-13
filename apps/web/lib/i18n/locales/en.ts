@@ -135,4 +135,17 @@ export const en: TranslationDict = {
     titleLabel: "Title (optional)",
     titlePlaceholder: "Auto-extract",
   },
+  bookmark: {
+    moveToFolder: "Move to Folder",
+    removeFromFolder: "Remove from Folder",
+    moveSuccess: "Moved successfully",
+    moveFailed: "Failed to move",
+    newFolder: "New Folder",
+    newFolderPlaceholder: "Folder name",
+    currentFolder: "Current",
+    noFolders: "No folders yet",
+    openInNewTab: "Open in new tab",
+    addFavorite: "Add to favorites",
+    removeFavorite: "Remove from favorites",
+  },
 } as const
