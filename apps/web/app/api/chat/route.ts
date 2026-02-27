@@ -82,11 +82,13 @@ export async function POST(req: Request) {
     messages,
     selectedChatModel,
     useKnowledgeBase = true,
+    useFolderTools = true,
   }: {
     id: string
     messages: UIMessage[]
     selectedChatModel?: string
     useKnowledgeBase?: boolean
+    useFolderTools?: boolean
   } = await req.json()
 
   const userId = session.user.id
@@ -133,6 +135,7 @@ export async function POST(req: Request) {
     systemPrompt,
     userId,
     useKnowledgeBase,
+    useFolderTools,
     onFinish: async ({ response }) => {
       try {
         const assistantMessages = response.messages.filter(
